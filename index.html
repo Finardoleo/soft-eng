@@ -1,0 +1,675 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5f7f5">
+  <title>Conecta Extensão — Projetos de extensão</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #172a26;
+      --muted: #71817c;
+      --line: #e6ebe7;
+      --paper: #fff;
+      --canvas: #f5f7f5;
+      --green: #237b5c;
+      --green-dark: #195e46;
+      --green-pale: #e8f4ed;
+      --lime: #d7ed9b;
+      --amber: #996715;
+      --amber-pale: #fff4dc;
+      --red: #b94a48;
+      --red-pale: #fcebea;
+      --blue: #46689d;
+      --blue-pale: #edf2fb;
+      --shadow: 0 12px 32px rgba(34, 57, 48, .07);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--canvas); color: var(--ink); font-size: 14px; }
+    button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; }
+    .app-shell { min-height: 100vh; display: grid; grid-template-columns: 248px minmax(0, 1fr); }
+    .sidebar {
+      background: #193b30; color: #eaf3ed; padding: 26px 18px 22px;
+      display: flex; flex-direction: column; min-height: 100vh; position: sticky; top: 0; height: 100vh;
+    }
+    .brand { display: flex; align-items: center; gap: 11px; padding: 0 10px 31px; }
+    .brand-mark { width: 35px; height: 35px; display: grid; place-items: center; border-radius: 12px; background: var(--lime); color: #193b30; }
+    .brand-mark svg { width: 21px; height: 21px; }
+    .brand-name { font-size: 16px; font-weight: 750; letter-spacing: -.5px; }
+    .brand-name span { display: block; color: #a9c5b7; font-size: 10px; font-weight: 500; letter-spacing: .1px; margin-top: 2px; }
+    .nav-label { color: #91afa0; font-size: 10px; letter-spacing: 1.2px; text-transform: uppercase; font-weight: 700; padding: 0 12px; margin: 7px 0 10px; }
+    .nav-list { display: grid; gap: 5px; }
+    .nav-item { width: 100%; color: #bdd0c5; background: transparent; border: 0; text-align: left; padding: 11px 12px; border-radius: 9px; display: flex; align-items: center; gap: 12px; font-weight: 550; font-size: 13px; transition: .15s ease; }
+    .nav-item:hover { background: rgba(255,255,255,.07); color: white; }
+    .nav-item.active { background: #2d5948; color: white; box-shadow: inset 3px 0 var(--lime); }
+    .nav-icon { width: 18px; height: 18px; opacity: .9; display: inline-grid; place-items: center; }
+    .nav-icon svg { width: 18px; height: 18px; }
+    .nav-badge { margin-left: auto; min-width: 20px; text-align: center; padding: 2px 6px; border-radius: 20px; background: var(--lime); color: #193b30; font-size: 10px; font-weight: 750; }
+    .sidebar-bottom { margin-top: auto; }
+    .help-card { border: 1px solid rgba(255,255,255,.14); background: rgba(255,255,255,.06); border-radius: 12px; padding: 14px; margin: 0 3px 16px; }
+    .help-card strong { display: block; font-size: 12px; margin-bottom: 5px; }
+    .help-card p { margin: 0; color: #b2c8bc; font-size: 11px; line-height: 1.55; }
+    .sidebar-user { display: flex; align-items: center; gap: 10px; border-top: 1px solid rgba(255,255,255,.13); padding: 17px 7px 0; }
+    .avatar { display: grid; place-items: center; flex: 0 0 auto; border-radius: 50%; width: 36px; height: 36px; background: #d7e9dc; color: #295943; font-weight: 750; font-size: 12px; }
+    .sidebar-user strong { display: block; font-size: 12px; }
+    .sidebar-user small { color: #aac3b5; font-size: 10px; }
+    .main { min-width: 0; }
+    .topbar { height: 72px; background: rgba(255,255,255,.9); border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; padding: 0 38px; position: sticky; top: 0; z-index: 5; backdrop-filter: blur(12px); }
+    .breadcrumbs { display: flex; align-items: center; gap: 9px; color: var(--muted); font-size: 12px; }
+    .breadcrumbs strong { color: var(--ink); font-weight: 650; }
+    .top-actions { display: flex; align-items: center; gap: 16px; }
+    .icon-button { position: relative; width: 36px; height: 36px; display: grid; place-items: center; border: 1px solid var(--line); background: white; color: #53665e; border-radius: 10px; }
+    .icon-button svg { width: 17px; height: 17px; }
+    .notification-dot { position: absolute; width: 7px; height: 7px; border-radius: 50%; background: #e0785c; border: 1px solid white; top: 6px; right: 7px; }
+    .mode-switch { display: flex; gap: 7px; align-items: center; color: var(--muted); font-size: 11px; }
+    .mode-switch select { border: 1px solid var(--line); background: white; color: var(--ink); border-radius: 8px; padding: 8px 26px 8px 10px; font-size: 11px; max-width: 180px; }
+    .content { width: min(1200px, 100%); margin: 0 auto; padding: 32px 38px 56px; }
+    .eyebrow { color: var(--green); text-transform: uppercase; letter-spacing: 1.4px; font-size: 10px; font-weight: 800; }
+    h1 { font-size: clamp(25px, 3vw, 34px); letter-spacing: -1.15px; line-height: 1.12; margin: 8px 0 9px; }
+    .page-intro { color: var(--muted); margin: 0; font-size: 13px; line-height: 1.6; }
+    .hero { border-radius: 17px; min-height: 180px; padding: 29px 32px; color: white; position: relative; overflow: hidden; background: linear-gradient(112deg, #1d5e47 0%, #277859 56%, #4b936a 100%); }
+    .hero:after { content: ""; position: absolute; width: 300px; height: 300px; right: 8%; top: -165px; border: 1px solid rgba(255,255,255,.18); border-radius: 50%; box-shadow: 0 0 0 28px rgba(255,255,255,.035), 0 0 0 58px rgba(255,255,255,.035), 0 0 0 88px rgba(255,255,255,.025); }
+    .hero-content { position: relative; z-index: 1; }
+    .hero .eyebrow { color: #cbe4d2; }
+    .hero h1 { margin-top: 8px; font-size: 29px; }
+    .hero p { color: #d0e3d8; margin: 0; font-size: 13px; }
+    .stats-row { display: flex; gap: 34px; margin-top: 23px; }
+    .stat { display: flex; align-items: baseline; gap: 8px; }
+    .stat strong { font-size: 19px; letter-spacing: -.5px; }
+    .stat span { color: #d1e5d7; font-size: 11px; }
+    .search-panel { background: var(--paper); border: 1px solid var(--line); border-radius: 14px; margin-top: -1px; padding: 20px; box-shadow: 0 8px 20px rgba(34,57,48,.045); }
+    .search-top { display: grid; grid-template-columns: minmax(220px, 1.6fr) repeat(3, minmax(125px, 1fr)) auto; gap: 11px; align-items: end; }
+    .field label { display: block; color: #53645d; font-weight: 650; font-size: 10px; margin: 0 0 7px 1px; }
+    .input-wrap { position: relative; }
+    .input-wrap svg { width: 16px; height: 16px; position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #8a9a92; pointer-events: none; }
+    .field input, .field select, .field textarea { border: 1px solid #dfe6e1; border-radius: 8px; color: var(--ink); background: white; width: 100%; padding: 10px 11px; min-height: 39px; outline: none; font-size: 12px; }
+    .field input:focus, .field select:focus, .field textarea:focus { border-color: #69a98a; box-shadow: 0 0 0 3px rgba(35,123,92,.1); }
+    .field .search-input { padding-left: 36px; }
+    .field select { padding-right: 22px; }
+    .button { border: 0; border-radius: 8px; padding: 10px 15px; min-height: 39px; background: var(--green); color: white; font-weight: 700; font-size: 12px; transition: background .15s, transform .15s; white-space: nowrap; }
+    .button:hover { background: var(--green-dark); }
+    .button:active { transform: translateY(1px); }
+    .button:disabled { background: #d8dfdb; color: #7e8d86; cursor: not-allowed; }
+    .button.secondary { background: white; border: 1px solid #dfe6e1; color: #43564e; }
+    .button.secondary:hover { border-color: #a8b8ae; background: #fafcfb; }
+    .button.ghost { background: transparent; color: var(--green); padding-left: 8px; padding-right: 8px; }
+    .button.danger { background: var(--red); }
+    .button.danger:hover { background: #9c3d3b; }
+    .button.small { padding: 8px 11px; min-height: 33px; font-size: 11px; }
+    .filters-bottom { display: flex; align-items: center; justify-content: space-between; gap: 15px; padding-top: 16px; margin-top: 16px; border-top: 1px solid #eff2ef; }
+    .hours-filter { display: flex; align-items: end; gap: 8px; }
+    .hours-filter .field { width: 105px; }
+    .hours-filter .dash { color: #99a59f; font-size: 13px; padding-bottom: 11px; }
+    .check-label { display: inline-flex; gap: 8px; align-items: center; color: #586960; font-size: 11px; cursor: pointer; user-select: none; }
+    .check-label input { accent-color: var(--green); width: 15px; height: 15px; margin: 0; }
+    .form-error { color: var(--red); font-size: 11px; margin: 11px 0 0; min-height: 15px; }
+    .section-heading { display: flex; align-items: end; justify-content: space-between; gap: 16px; margin: 27px 0 14px; }
+    .section-heading h2 { font-size: 17px; letter-spacing: -.35px; margin: 0 0 4px; }
+    .section-heading p { color: var(--muted); margin: 0; font-size: 11px; }
+    .results-count { color: var(--muted); font-size: 11px; }
+    .project-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+    .project-card { background: var(--paper); border: 1px solid var(--line); border-radius: 13px; padding: 19px; transition: .18s ease; display: flex; flex-direction: column; min-height: 231px; }
+    .project-card:hover { border-color: #c6d8cc; box-shadow: var(--shadow); transform: translateY(-2px); }
+    .card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+    .area-tag { color: #47745b; background: #edf5ef; border-radius: 20px; padding: 5px 9px; font-size: 10px; font-weight: 700; }
+    .status-tag { display: inline-flex; align-items: center; gap: 5px; font-size: 10px; font-weight: 700; white-space: nowrap; }
+    .status-tag:before { content: ""; width: 6px; height: 6px; background: currentColor; border-radius: 50%; }
+    .status-tag.open { color: var(--green); }
+    .status-tag.closed { color: #7b8580; }
+    .project-card h3 { font-size: 16px; line-height: 1.35; letter-spacing: -.3px; margin: 14px 0 7px; }
+    .coordinator { color: var(--muted); font-size: 11px; }
+    .coordinator strong { color: #4a5b53; font-weight: 650; }
+    .card-description { color: #66766e; font-size: 11px; line-height: 1.55; margin: 12px 0 15px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .project-meta { display: flex; flex-wrap: wrap; gap: 13px; color: #506159; font-size: 10px; margin-top: auto; padding-top: 12px; border-top: 1px solid #eff2ef; }
+    .meta-item { display: inline-flex; align-items: center; gap: 5px; }
+    .meta-item svg { width: 14px; height: 14px; color: #7c9186; }
+    .card-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 14px; }
+    .spots { color: #617168; font-size: 10px; }
+    .spots strong { color: var(--ink); font-size: 11px; }
+    .text-button { color: var(--green); border: 0; background: transparent; padding: 5px 0; font-size: 11px; font-weight: 750; }
+    .text-button:hover { color: var(--green-dark); text-decoration: underline; }
+    .empty-state { text-align: center; background: white; border: 1px dashed #dbe4dd; border-radius: 13px; padding: 48px 20px; grid-column: 1/-1; }
+    .empty-icon { margin: 0 auto 13px; width: 44px; height: 44px; border-radius: 14px; display: grid; place-items: center; color: var(--green); background: var(--green-pale); }
+    .empty-icon svg { width: 22px; height: 22px; }
+    .empty-state h3 { font-size: 15px; margin: 0 0 6px; }
+    .empty-state p { margin: 0 0 17px; color: var(--muted); font-size: 11px; }
+    .dashboard-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; margin-bottom: 22px; }
+    .dashboard-head h1 { margin-top: 7px; }
+    .dashboard-tools { display: flex; gap: 9px; align-items: center; }
+    .dashboard-tools select { padding: 10px 30px 10px 11px; min-height: 39px; background: white; color: var(--ink); border: 1px solid var(--line); border-radius: 8px; font-size: 11px; }
+    .metric-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+    .metric-card { background: white; border: 1px solid var(--line); border-radius: 12px; padding: 15px 16px; }
+    .metric-title { color: var(--muted); font-size: 10px; font-weight: 600; }
+    .metric-value { font-size: 24px; font-weight: 750; letter-spacing: -.8px; margin-top: 6px; }
+    .metric-note { color: #8a9891; font-size: 10px; margin-top: 3px; }
+    .dashboard-panel { background: white; border: 1px solid var(--line); border-radius: 13px; overflow: hidden; }
+    .panel-heading { display: flex; align-items: center; justify-content: space-between; gap: 15px; padding: 17px 19px; border-bottom: 1px solid var(--line); }
+    .panel-heading h2 { font-size: 14px; margin: 0 0 4px; }
+    .panel-heading p { font-size: 10px; margin: 0; color: var(--muted); }
+    .capacity { min-width: 145px; }
+    .capacity-label { display: flex; justify-content: space-between; color: #65756d; font-size: 10px; margin-bottom: 6px; }
+    .capacity-label strong { color: #31483d; }
+    .progress { height: 6px; background: #edf1ed; border-radius: 10px; overflow: hidden; }
+    .progress span { display: block; height: 100%; border-radius: inherit; background: #58a579; }
+    .tab-row { display: flex; gap: 19px; padding: 0 19px; border-bottom: 1px solid var(--line); }
+    .tab { color: #839088; background: transparent; border: 0; padding: 13px 1px 11px; border-bottom: 2px solid transparent; font-size: 11px; font-weight: 650; }
+    .tab.active { color: var(--green); border-bottom-color: var(--green); }
+    .tab span { background: #f0f3f0; border-radius: 12px; padding: 2px 6px; font-size: 9px; margin-left: 4px; }
+    .table-wrap { overflow-x: auto; }
+    table { border-collapse: collapse; width: 100%; min-width: 760px; text-align: left; }
+    th { color: #829088; background: #fbfcfb; font-weight: 700; font-size: 9px; letter-spacing: .5px; text-transform: uppercase; padding: 11px 16px; }
+    td { padding: 13px 16px; border-top: 1px solid #eff2ef; color: #46564e; font-size: 11px; }
+    .candidate-cell { display: flex; align-items: center; gap: 9px; min-width: 175px; }
+    .candidate-cell .avatar { width: 31px; height: 31px; font-size: 10px; }
+    .candidate-cell strong { display: block; color: #25372f; font-size: 11px; }
+    .candidate-cell small { display: block; color: #8b9992; font-size: 9px; margin-top: 3px; }
+    .status-pill { display: inline-block; border-radius: 20px; padding: 5px 8px; font-size: 9px; font-weight: 750; white-space: nowrap; }
+    .status-pill.pending { color: var(--amber); background: var(--amber-pale); }
+    .status-pill.approved { color: var(--green); background: var(--green-pale); }
+    .status-pill.rejected { color: var(--red); background: var(--red-pale); }
+    .status-pill.cancelled { color: #69756e; background: #eef1ef; }
+    .action-cell { display: flex; gap: 6px; justify-content: flex-end; white-space: nowrap; }
+    .table-empty { text-align: center; padding: 42px 15px; color: var(--muted); }
+    .table-empty strong { display: block; color: var(--ink); margin-bottom: 4px; }
+    .pagination { border-top: 1px solid var(--line); padding: 12px 17px; display: flex; justify-content: space-between; align-items: center; color: var(--muted); font-size: 10px; }
+    .pagination-controls { display: flex; align-items: center; gap: 5px; }
+    .page-button { width: 28px; height: 28px; border: 1px solid var(--line); background: white; border-radius: 7px; color: #63736a; font-size: 10px; }
+    .page-button.active { background: var(--green); border-color: var(--green); color: white; }
+    .page-button:disabled { opacity: .45; cursor: default; }
+    .notice { margin-top: 15px; border-radius: 10px; padding: 12px 14px; display: flex; gap: 9px; align-items: flex-start; color: #596c61; background: #eef5ef; font-size: 10px; line-height: 1.5; }
+    .notice strong { color: #355a45; }
+    .notice svg { width: 15px; height: 15px; flex: 0 0 auto; color: var(--green); }
+    .back-link { color: var(--green); background: none; border: 0; padding: 0; font-size: 11px; font-weight: 700; margin-bottom: 19px; }
+    .project-detail-head { background: white; border: 1px solid var(--line); border-radius: 14px; padding: 25px; }
+    .project-detail-head h1 { font-size: 27px; margin: 14px 0 8px; }
+    .detail-facts { display: flex; gap: 22px; flex-wrap: wrap; margin-top: 19px; padding-top: 16px; border-top: 1px solid var(--line); }
+    .detail-fact { color: #596b62; font-size: 11px; }
+    .detail-fact strong { display: block; color: #273a31; font-size: 12px; margin-top: 5px; }
+    .detail-grid { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(250px, .8fr); gap: 15px; margin-top: 15px; }
+    .detail-card { background: white; border: 1px solid var(--line); border-radius: 13px; padding: 20px; }
+    .detail-card h2 { font-size: 14px; margin: 0 0 13px; }
+    .detail-card p { color: #68786f; font-size: 12px; line-height: 1.7; margin: 0; }
+    .course-list { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 16px; }
+    .course-chip { color: #587264; background: #f0f5f1; padding: 6px 9px; border-radius: 20px; font-size: 10px; }
+    .apply-card { align-self: start; }
+    .apply-card .spots { margin: 10px 0 15px; }
+    .apply-card .button { width: 100%; }
+    .apply-card .muted-note { color: #87948d; font-size: 10px; line-height: 1.5; margin-top: 10px; }
+    .overlay { position: fixed; inset: 0; background: rgba(14,32,25,.48); z-index: 20; display: grid; place-items: center; padding: 18px; overflow-y: auto; }
+    .modal { width: min(510px, 100%); background: white; border-radius: 15px; box-shadow: 0 24px 70px rgba(12,31,22,.24); animation: appear .16s ease-out; }
+    @keyframes appear { from { opacity: 0; transform: translateY(7px) scale(.99); } to { opacity: 1; transform: none; } }
+    .modal-header { padding: 20px 22px 15px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; gap: 15px; }
+    .modal-header h2 { font-size: 16px; margin: 0 0 5px; letter-spacing: -.3px; }
+    .modal-header p { color: var(--muted); margin: 0; font-size: 10px; }
+    .close-button { width: 29px; height: 29px; border: 0; background: #f2f5f2; color: #63736a; border-radius: 8px; font-size: 18px; line-height: 1; }
+    .modal-body { padding: 19px 22px; }
+    .modal-footer { border-top: 1px solid var(--line); padding: 14px 22px; display: flex; justify-content: flex-end; gap: 8px; }
+    .candidate-detail { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 18px 0; }
+    .candidate-detail span { display: block; color: #87948d; font-size: 9px; margin-bottom: 5px; }
+    .candidate-detail strong { color: #35483e; font-size: 11px; }
+    .motivation { border-radius: 9px; padding: 13px; background: #f6f8f6; color: #65756c; font-size: 11px; line-height: 1.65; }
+    .motivation strong { color: #40564a; display: block; font-size: 10px; margin-bottom: 6px; }
+    .modal .field { margin-bottom: 14px; }
+    .field textarea { min-height: 88px; resize: vertical; line-height: 1.5; }
+    .field-hint { color: #8b9891; font-size: 9px; margin: 5px 0 0; }
+    .toast-region { position: fixed; right: 23px; bottom: 20px; z-index: 50; display: grid; gap: 8px; }
+    .toast { background: #1d3c30; color: white; border-radius: 9px; padding: 12px 15px; box-shadow: 0 8px 24px rgba(0,0,0,.16); min-width: 240px; max-width: 350px; font-size: 11px; animation: appear .2s ease-out; }
+    .toast.error { background: #873e3b; }
+    .mobile-menu { display: none; }
+    .no-results { color: var(--muted); }
+    .app-footer { border-top: 1px solid var(--line); margin-top: 38px; padding-top: 15px; color: #8b9891; font-size: 10px; }
+    @media (max-width: 1080px) {
+      .search-top { grid-template-columns: 1.5fr 1fr 1fr; }
+      .search-top .field:nth-child(4) { grid-column: 2; }
+      .search-top .button { grid-column: 3; }
+      .project-grid { grid-template-columns: 1fr; }
+      .project-card { min-height: 210px; }
+    }
+    @media (max-width: 760px) {
+      .app-shell { grid-template-columns: 1fr; }
+      .sidebar { display: none; }
+      .topbar { padding: 0 17px; height: 60px; }
+      .mobile-menu { display: grid; }
+      .breadcrumbs { font-size: 11px; }
+      .content { padding: 22px 16px 40px; }
+      .hero { padding: 23px 20px; }
+      .hero h1 { font-size: 25px; }
+      .stats-row { gap: 16px; }
+      .stat { display: block; }
+      .stat strong { display: block; font-size: 17px; }
+      .stat span { font-size: 9px; }
+      .search-panel { padding: 15px; }
+      .search-top { grid-template-columns: 1fr 1fr; }
+      .search-top .field:first-child { grid-column: 1/-1; }
+      .search-top .field:nth-child(4) { grid-column: auto; }
+      .search-top .button { grid-column: 1/-1; }
+      .filters-bottom { align-items: flex-start; flex-direction: column; }
+      .hours-filter { width: 100%; }
+      .hours-filter .field { flex: 1; }
+      .project-grid { gap: 10px; }
+      .project-card { padding: 16px; }
+      .metric-grid { grid-template-columns: repeat(2, 1fr); }
+      .dashboard-head { display: block; }
+      .dashboard-tools { margin-top: 15px; }
+      .dashboard-tools select { flex: 1; min-width: 0; }
+      .panel-heading { align-items: flex-start; flex-direction: column; }
+      .detail-grid { grid-template-columns: 1fr; }
+      .detail-facts { gap: 15px; }
+      .project-detail-head { padding: 18px; }
+      .project-detail-head h1 { font-size: 23px; }
+      .top-actions { gap: 8px; }
+      .mode-switch { gap: 5px; }
+      .mode-switch span { display: none; }
+      .mode-switch select { max-width: 142px; padding-left: 8px; font-size: 10px; }
+    }
+    @media (max-width: 420px) {
+      .hero { min-height: 174px; }
+      .stats-row { gap: 12px; }
+      .search-top { gap: 9px; }
+      .section-heading { align-items: flex-start; flex-direction: column; }
+      .project-meta { gap: 9px; }
+      .candidate-detail { grid-template-columns: 1fr; gap: 11px; }
+      .mode-switch select { max-width: 122px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s7-4.4 7-11V5l-7-2-7 2v5c0 6.6 7 11 7 11Z"/><path d="m9 12 2 2 4-4"/></svg></div>
+        <div class="brand-name">conecta<span>EXTENSÃO UNIVERSITÁRIA</span></div>
+      </div>
+      <div class="nav-label">Espaço do estudante</div>
+      <nav class="nav-list" aria-label="Navegação principal">
+        <button class="nav-item active" data-view="discover"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg></span>Explorar projetos</button>
+        <button class="nav-item" data-view="my-applications"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 5H5v16h14V5h-3"/><path d="M9 3h6v4H9zM8 12h8M8 16h6"/></svg></span>Minhas candidaturas<span class="nav-badge" id="my-app-count">2</span></button>
+      </nav>
+      <div class="nav-label" style="margin-top:27px">Espaço do coordenador</div>
+      <nav class="nav-list" aria-label="Área do coordenador">
+        <button class="nav-item" data-view="coordinator"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19V5M4 19h17"/><path d="m7 15 4-4 3 2 6-7"/></svg></span>Gestão de candidaturas<span class="nav-badge" id="pending-count">4</span></button>
+      </nav>
+      <div class="sidebar-bottom">
+        <div class="help-card"><strong>Um impacto começa aqui</strong><p>Encontre oportunidades para transformar conhecimento em ações na comunidade.</p></div>
+        <div class="sidebar-user">
+          <div class="avatar">MC</div><div><strong>Marina Costa</strong><small>Estudante · Design</small></div>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div class="breadcrumbs"><button class="icon-button mobile-menu" aria-label="Abrir menu" onclick="showToast('Use o seletor de perfil para alternar entre as áreas.')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button><span>Início</span><span>›</span><strong id="breadcrumb-current">Explorar projetos</strong></div>
+        <div class="top-actions">
+          <div class="mode-switch"><span>Visualizar como</span><select id="profile-select" aria-label="Selecionar perfil"><option value="student">Estudante</option><option value="coord-ana">Coord. Ana Ribeiro</option><option value="coord-carlos">Coord. Carlos Mendes</option></select></div>
+          <button class="icon-button" aria-label="Notificações" onclick="openNotifications()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg><i class="notification-dot"></i></button>
+        </div>
+      </header>
+      <div class="content" id="app-content"></div>
+      <div class="content" style="padding-top:0"><footer class="app-footer">Protótipo demonstrativo · Dados fictícios · Alterações válidas apenas durante esta sessão</footer></div>
+    </main>
+  </div>
+  <div id="modal-root"></div>
+  <div class="toast-region" id="toast-region" aria-live="polite"></div>
+
+  <script>
+    const icons = {
+      pin: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg>',
+      clock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+      users: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
+      search: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>',
+      info: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg>',
+      empty: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4M8 11h6"/></svg>'
+    };
+
+    const projects = [
+      { id: 1, title: "Rios Vivos: educação ambiental e cuidado com as águas", coordinator: "Ana Ribeiro", area: "Meio ambiente", courses: ["Biologia", "Engenharia Ambiental", "Geografia"], hours: 45, mode: "Presencial", spots: 12, filled: 2, enrollment: "open", start: "2027-03-15", period: "Até 28 fev 2027", location: "Campus Central e comunidade", description: "Ações de educação ambiental e cuidado com o meio ambiente junto a escolas e comunidades ribeirinhas. Os estudantes participam de oficinas, monitoramento da qualidade da água e atividades de sensibilização para a conservação dos rios." },
+      { id: 2, title: "Tecnologia para todos: inclusão digital comunitária", coordinator: "Carlos Mendes", area: "Tecnologia", courses: ["Sistemas de Informação", "Ciência da Computação", "Pedagogia"], hours: 30, mode: "Híbrido", spots: 3, filled: 3, enrollment: "open", start: "2027-02-20", period: "Até 15 jan 2027", location: "Centro Comunitário Vila Nova", description: "Laboratórios práticos de cidadania digital para jovens e pessoas idosas. A equipe ensina ferramentas do dia a dia e desenvolve, junto com a comunidade, soluções simples para necessidades locais." },
+      { id: 3, title: "Sabores da terra: horta urbana e alimentação saudável", coordinator: "Ana Ribeiro", area: "Saúde", courses: ["Nutrição", "Agronomia", "Serviço Social"], hours: 60, mode: "Presencial", spots: 8, filled: 0, enrollment: "open", start: "2027-04-01", period: "Até 10 mar 2027", location: "Bairro Jardim das Flores", description: "Construção colaborativa de hortas urbanas e promoção de hábitos alimentares saudáveis. O projeto integra saberes populares e conhecimentos acadêmicos em encontros semanais." },
+      { id: 4, title: "Leitura que aproxima: mediação de leitura para crianças", coordinator: "Carlos Mendes", area: "Educação", courses: ["Pedagogia", "Letras", "Psicologia"], hours: 30, mode: "Remoto", spots: 15, filled: 1, enrollment: "open", start: "2027-03-01", period: "Até 20 fev 2027", location: "Online e escolas parceiras", description: "Formação de mediadores de leitura e encontros on-line com crianças da rede pública. A equipe cria atividades lúdicas para ampliar o acesso à literatura e fortalecer vínculos com a leitura." },
+      { id: 5, title: "Memórias do bairro: cultura, patrimônio e pertencimento", coordinator: "Ana Ribeiro", area: "Cultura", courses: ["História", "Jornalismo", "Design"], hours: 45, mode: "Híbrido", spots: 6, filled: 0, enrollment: "closed", start: "2026-10-10", period: "Inscrições encerradas", location: "Centro Histórico", description: "Registro das histórias, imagens e manifestações culturais que fazem parte da identidade do bairro. O material produzido será compartilhado em uma exposição comunitária." },
+      { id: 6, title: "Cuidado em rede: promoção de saúde e bem-estar", coordinator: "Carlos Mendes", area: "Saúde", courses: ["Enfermagem", "Psicologia", "Educação Física"], hours: 60, mode: "Presencial", spots: 10, filled: 0, enrollment: "open", start: "2027-02-01", period: "Até 10 jan 2027", location: "Unidade de Saúde Escola", description: "Atividades de promoção da saúde e prevenção em parceria com serviços locais. Os estudantes participam de rodas de conversa, ações educativas e acompanhamento de iniciativas comunitárias." },
+      { id: 7, title: "Código aberto: oficinas de programação para jovens", coordinator: "Carlos Mendes", area: "Tecnologia", courses: ["Sistemas de Informação", "Matemática"], hours: 30, mode: "Remoto", spots: 12, filled: 0, enrollment: "open", start: "2027-05-04", period: "Até 15 abr 2027", location: "Online", description: "Oficinas introdutórias de lógica e programação criativa para estudantes do ensino médio. Atividades acessíveis e mão na massa, com acompanhamento de uma equipe multidisciplinar." },
+      { id: 8, title: "Cidade para pessoas: mobilidade e espaço público", coordinator: "Ana Ribeiro", area: "Meio ambiente", courses: ["Arquitetura", "Engenharia Civil", "Geografia"], hours: 45, mode: "Presencial", spots: 9, filled: 0, enrollment: "open", start: "2027-03-22", period: "Até 5 mar 2027", location: "Campus Central e entorno", description: "Mapeamento participativo de rotas e espaços públicos para construir propostas de mobilidade mais seguras, inclusivas e sustentáveis para a comunidade." }
+    ];
+
+    const candidates = [
+      { id: 101, projectId: 1, name: "Marina Costa", email: "marina.costa@aluno.edu.br", course: "Biologia", semester: "5º semestre", date: "2026-11-18", status: "pending", motivation: "Quero aproximar o que aprendo em sala das questões ambientais da nossa região. Já participei de ações voluntárias na escola do meu bairro e gostaria de contribuir com as atividades de educação e monitoramento." },
+      { id: 102, projectId: 1, name: "Pedro Nascimento", email: "pedro.nascimento@aluno.edu.br", course: "Geografia", semester: "6º semestre", date: "2026-11-17", status: "pending", motivation: "Tenho interesse em trabalhar com comunidades e entender melhor a relação entre o território e os recursos hídricos. Acredito que posso contribuir com as oficinas e com a produção de materiais educativos." },
+      { id: 103, projectId: 1, name: "Lívia Ferreira", email: "livia.ferreira@aluno.edu.br", course: "Engenharia Ambiental", semester: "4º semestre", date: "2026-11-16", status: "pending", motivation: "A área de conservação de rios é o que me motivou a escolher meu curso. Quero aprender com a comunidade e ajudar a tornar a ciência mais acessível." },
+      { id: 104, projectId: 1, name: "Rafael Oliveira", email: "rafael.oliveira@aluno.edu.br", course: "Biologia", semester: "7º semestre", date: "2026-11-15", status: "approved", motivation: "Gostaria de participar da coleta e análise de dados, além de colaborar nas atividades com as escolas." },
+      { id: 105, projectId: 1, name: "Júlia Santos", email: "julia.santos@aluno.edu.br", course: "Geografia", semester: "3º semestre", date: "2026-11-14", status: "pending", motivation: "Tenho vontade de participar de um projeto que gere impacto positivo e acredito que a educação ambiental é um caminho importante." },
+      { id: 106, projectId: 1, name: "Bruno Almeida", email: "bruno.almeida@aluno.edu.br", course: "Biologia", semester: "8º semestre", date: "2026-11-12", status: "approved", motivation: "Quero compartilhar minha experiência em atividades de campo e aprender mais sobre educação ambiental comunitária." },
+      { id: 107, projectId: 1, name: "Camila Rocha", email: "camila.rocha@aluno.edu.br", course: "Engenharia Ambiental", semester: "2º semestre", date: "2026-11-11", status: "rejected", reason: "Neste ciclo, priorizamos estudantes com disponibilidade para os encontros presenciais semanais.", motivation: "Tenho interesse em aprender mais sobre recursos hídricos e ajudar nas atividades do projeto." },
+      { id: 108, projectId: 1, name: "Thiago Lima", email: "thiago.lima@aluno.edu.br", course: "Geografia", semester: "5º semestre", date: "2026-11-10", status: "pending", motivation: "Minha trajetória acadêmica e meu interesse por educação popular me motivam a participar deste projeto." },
+      { id: 109, projectId: 2, name: "Isabela Martins", email: "isabela.martins@aluno.edu.br", course: "Pedagogia", semester: "6º semestre", date: "2026-11-19", status: "pending", motivation: "Quero apoiar ações de inclusão e tenho experiência como monitora em oficinas de tecnologia." },
+      { id: 110, projectId: 2, name: "Lucas Vieira", email: "lucas.vieira@aluno.edu.br", course: "Sistemas de Informação", semester: "4º semestre", date: "2026-11-18", status: "pending", motivation: "Acredito que o acesso à tecnologia pode abrir muitas oportunidades. Quero contribuir com oficinas acessíveis para a comunidade." },
+      { id: 111, projectId: 2, name: "Beatriz Souza", email: "beatriz.souza@aluno.edu.br", course: "Ciência da Computação", semester: "7º semestre", date: "2026-11-17", status: "approved", motivation: "Tenho experiência em programação básica e gostaria de compartilhar o que aprendi com novos públicos." },
+      { id: 112, projectId: 2, name: "André Carvalho", email: "andre.carvalho@aluno.edu.br", course: "Sistemas de Informação", semester: "3º semestre", date: "2026-11-16", status: "pending", motivation: "Gostaria de usar meus conhecimentos para ajudar outras pessoas a se sentirem mais confiantes usando tecnologia." },
+      { id: 113, projectId: 2, name: "Sofia Mendes", email: "sofia.mendes@aluno.edu.br", course: "Pedagogia", semester: "5º semestre", date: "2026-11-15", status: "approved", motivation: "Tenho interesse em práticas de educação inclusiva e quero colaborar com uma iniciativa comunitária." },
+      { id: 114, projectId: 2, name: "Gabriel Freitas", email: "gabriel.freitas@aluno.edu.br", course: "Ciência da Computação", semester: "2º semestre", date: "2026-11-14", status: "approved", motivation: "Quero participar de uma iniciativa que torne a tecnologia mais acessível no dia a dia." },
+      { id: 115, projectId: 2, name: "Helena Dias", email: "helena.dias@aluno.edu.br", course: "Sistemas de Informação", semester: "8º semestre", date: "2026-11-13", status: "pending", motivation: "Posso contribuir com minha experiência em suporte e tenho vontade de aprender sobre extensão universitária." },
+      { id: 116, projectId: 2, name: "Enzo Barros", email: "enzo.barros@aluno.edu.br", course: "Pedagogia", semester: "4º semestre", date: "2026-11-12", status: "pending", motivation: "Tenho interesse em educação e tecnologia, especialmente na inclusão digital de diferentes gerações." },
+      { id: 117, projectId: 2, name: "Manuela Reis", email: "manuela.reis@aluno.edu.br", course: "Ciência da Computação", semester: "5º semestre", date: "2026-11-11", status: "pending", motivation: "Quero aprender a traduzir conhecimentos técnicos em atividades que façam sentido para as pessoas." },
+      { id: 118, projectId: 3, name: "Daniela Pires", email: "daniela.pires@aluno.edu.br", course: "Nutrição", semester: "6º semestre", date: "2026-11-20", status: "pending", motivation: "Acredito que alimentação saudável também começa pelo acesso e pelo cultivo. Quero contribuir com as ações de educação e horta comunitária." },
+      { id: 119, projectId: 3, name: "Matheus Cardoso", email: "matheus.cardoso@aluno.edu.br", course: "Agronomia", semester: "5º semestre", date: "2026-11-19", status: "pending", motivation: "Quero colocar meus conhecimentos em prática e aprender com os saberes de quem já cultiva na cidade." },
+      { id: 120, projectId: 4, name: "Laura Azevedo", email: "laura.azevedo@aluno.edu.br", course: "Letras", semester: "3º semestre", date: "2026-11-19", status: "pending", motivation: "A leitura teve um papel importante na minha vida, e gostaria de ajudar a criar essa experiência para outras crianças." },
+      { id: 121, projectId: 4, name: "Caio Nunes", email: "caio.nunes@aluno.edu.br", course: "Pedagogia", semester: "7º semestre", date: "2026-11-18", status: "pending", motivation: "Tenho interesse em literatura infantil e em práticas de mediação de leitura na escola." },
+      { id: 122, projectId: 4, name: "Isadora Melo", email: "isadora.melo@aluno.edu.br", course: "Psicologia", semester: "4º semestre", date: "2026-11-17", status: "approved", motivation: "Gostaria de explorar a leitura como espaço de expressão, vínculo e desenvolvimento." }
+    ];
+
+    let activeView = "discover";
+    let selectedProjectId = null;
+    let selectedCandidateId = null;
+    let activeTab = "pending";
+    let currentPage = 1;
+    const pageSize = 6;
+    let includeClosed = false;
+    let notifications = [
+      { text: "Sua candidatura para Sabores da terra está em análise.", time: "Hoje, 09:42", read: false },
+      { text: "As inscrições para Memórias do bairro foram encerradas.", time: "Ontem, 14:18", read: false }
+    ];
+
+    const content = document.getElementById("app-content");
+    const profileSelect = document.getElementById("profile-select");
+    const nameInitials = (name) => name.split(" ").slice(0, 2).map(part => part[0]).join("").toUpperCase();
+    const escapeHtml = (value) => String(value).replace(/[&<>"']/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[char]));
+    const getProfileCoordinator = () => profileSelect.value === "coord-carlos" ? "Carlos Mendes" : "Ana Ribeiro";
+    const getProject = (id) => projects.find(project => project.id === Number(id));
+    const getCandidate = (id) => candidates.find(candidate => candidate.id === Number(id));
+    const getMyApplications = () => candidates.filter(candidate => candidate.email === "marina.costa@aluno.edu.br");
+    const formatDate = (date) => new Date(`${date}T12:00:00`).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" }).replace(".", "");
+    const statusText = (status) => ({ pending: "Em análise", approved: "Aprovada", rejected: "Recusada", cancelled: "Cancelada" }[status] || status);
+
+    function setView(view) {
+      activeView = view;
+      selectedProjectId = null;
+      document.querySelectorAll(".nav-item").forEach(button => button.classList.toggle("active", button.dataset.view === view));
+      const labels = { discover: "Explorar projetos", coordinator: "Gestão de candidaturas", "my-applications": "Minhas candidaturas" };
+      document.getElementById("breadcrumb-current").textContent = labels[view] || "Explorar projetos";
+      render();
+    }
+    document.querySelectorAll(".nav-item").forEach(button => button.addEventListener("click", () => setView(button.dataset.view)));
+    profileSelect.addEventListener("change", () => {
+      if (profileSelect.value === "student" && activeView === "coordinator") setView("discover");
+      else if (profileSelect.value !== "student" && activeView !== "coordinator") setView("coordinator");
+      else render();
+    });
+
+    function render() {
+      updateBadges();
+      if (selectedProjectId !== null) renderProjectDetail();
+      else if (activeView === "coordinator") renderCoordinator();
+      else if (activeView === "my-applications") renderMyApplications();
+      else renderDiscover();
+    }
+
+    function updateBadges() {
+      const projectIds = projects.filter(project => project.coordinator === getProfileCoordinator()).map(project => project.id);
+      const pending = candidates.filter(candidate => projectIds.includes(candidate.projectId) && candidate.status === "pending").length;
+      document.getElementById("pending-count").textContent = pending;
+      document.getElementById("my-app-count").textContent = getMyApplications().filter(candidate => candidate.status !== "cancelled").length;
+    }
+
+    function projectCard(project) {
+      const available = Math.max(0, project.spots - project.filled);
+      return `<article class="project-card">
+        <div class="card-top"><span class="area-tag">${escapeHtml(project.area)}</span><span class="status-tag ${project.enrollment === "open" ? "open" : "closed"}">${project.enrollment === "open" ? "Inscrições abertas" : "Encerrado"}</span></div>
+        <h3>${escapeHtml(project.title)}</h3>
+        <div class="coordinator">Coordenado por <strong>${escapeHtml(project.coordinator)}</strong></div>
+        <p class="card-description">${escapeHtml(project.description)}</p>
+        <div class="project-meta"><span class="meta-item">${icons.clock}${project.hours} horas</span><span class="meta-item">${icons.pin}${escapeHtml(project.mode)}</span><span class="meta-item">${icons.users}${project.filled}/${project.spots} vagas</span></div>
+        <div class="card-footer"><span class="spots">${project.enrollment === "open" ? `<strong>${available}</strong> ${available === 1 ? "vaga disponível" : "vagas disponíveis"}` : "Período de inscrição encerrado"}</span><button class="text-button" onclick="openProject(${project.id})">Ver detalhes&nbsp; →</button></div>
+      </article>`;
+    }
+
+    function renderDiscover() {
+      content.innerHTML = `<section class="hero"><div class="hero-content">
+        <div class="eyebrow">Conexão que transforma</div><h1>Encontre um projeto<br>com a sua cara.</h1>
+        <p>Explore oportunidades e leve o conhecimento para mais perto da comunidade.</p>
+        <div class="stats-row"><div class="stat"><strong>${projects.filter(p => p.enrollment === "open").length}</strong><span>projetos com inscrições abertas</span></div><div class="stat"><strong>${projects.reduce((sum, p) => sum + Math.max(0, p.spots - p.filled), 0)}</strong><span>vagas disponíveis</span></div></div>
+      </div></section>
+      <section class="search-panel" aria-label="Busca e filtros de projetos">
+        <div class="search-top">
+          <div class="field"><label for="keyword">Buscar projeto</label><div class="input-wrap">${icons.search}<input class="search-input" id="keyword" placeholder="Ex.: meio ambiente, Ana Ribeiro..." autocomplete="off"></div></div>
+          <div class="field"><label for="area">Área de atuação</label><select id="area"><option value="">Todas as áreas</option>${[...new Set(projects.map(p => p.area))].sort().map(area => `<option>${escapeHtml(area)}</option>`).join("")}</select></div>
+          <div class="field"><label for="course">Curso</label><select id="course"><option value="">Todos os cursos</option>${[...new Set(projects.flatMap(p => p.courses))].sort().map(course => `<option>${escapeHtml(course)}</option>`).join("")}</select></div>
+          <div class="field"><label for="mode">Modalidade</label><select id="mode"><option value="">Todas</option>${["Presencial", "Remoto", "Híbrido"].map(mode => `<option>${mode}</option>`).join("")}</select></div>
+          <button class="button" id="search-button">Buscar projetos</button>
+        </div>
+        <div class="filters-bottom">
+          <div class="hours-filter">
+            <div class="field"><label for="min-hours">Carga horária</label><input id="min-hours" type="number" min="0" placeholder="Mín."></div><span class="dash">—</span>
+            <div class="field"><label for="max-hours">&nbsp;</label><input id="max-hours" type="number" min="0" placeholder="Máx."></div>
+          </div>
+          <label class="check-label"><input type="checkbox" id="include-closed"> Incluir projetos encerrados</label>
+        </div>
+        <p class="form-error" id="filter-error" role="alert"></p>
+      </section>
+      <div class="section-heading"><div><h2>Projetos para você</h2><p>Oportunidades de extensão abertas à comunidade acadêmica</p></div><span class="results-count" id="results-count"></span></div>
+      <section class="project-grid" id="project-results" aria-live="polite"></section>`;
+      document.getElementById("include-closed").checked = includeClosed;
+      document.getElementById("include-closed").addEventListener("change", event => { includeClosed = event.target.checked; applyFilters(); });
+      document.getElementById("search-button").addEventListener("click", applyFilters);
+      ["keyword", "area", "course", "mode", "min-hours", "max-hours"].forEach(id => document.getElementById(id).addEventListener("keydown", event => { if (event.key === "Enter") applyFilters(); }));
+      applyFilters();
+    }
+
+    function applyFilters() {
+      const minRaw = document.getElementById("min-hours").value.trim();
+      const maxRaw = document.getElementById("max-hours").value.trim();
+      const min = minRaw === "" ? null : Number(minRaw);
+      const max = maxRaw === "" ? null : Number(maxRaw);
+      const error = document.getElementById("filter-error");
+      if ((min !== null && (!Number.isFinite(min) || min < 0)) || (max !== null && (!Number.isFinite(max) || max < 0))) {
+        error.textContent = "Informe uma carga horária válida, maior ou igual a zero.";
+        return;
+      }
+      if (min !== null && max !== null && min > max) {
+        error.textContent = "A carga horária mínima não pode ser maior que a máxima.";
+        return;
+      }
+      error.textContent = "";
+      const keyword = document.getElementById("keyword").value.trim().toLocaleLowerCase("pt-BR");
+      const area = document.getElementById("area").value;
+      const course = document.getElementById("course").value;
+      const mode = document.getElementById("mode").value;
+      const filtered = projects.filter(project => {
+        if (project.enrollment !== "open" && !includeClosed) return false;
+        const searchable = `${project.title} ${project.description} ${project.coordinator}`.toLocaleLowerCase("pt-BR");
+        return (!keyword || searchable.includes(keyword))
+          && (!area || project.area === area)
+          && (!course || project.courses.includes(course))
+          && (!mode || project.mode === mode)
+          && (min === null || project.hours >= min)
+          && (max === null || project.hours <= max);
+      });
+      document.getElementById("results-count").textContent = `${filtered.length} ${filtered.length === 1 ? "projeto encontrado" : "projetos encontrados"}`;
+      const results = document.getElementById("project-results");
+      results.innerHTML = filtered.length ? filtered.map(projectCard).join("") : `<div class="empty-state"><div class="empty-icon">${icons.empty}</div><h3>Nenhum projeto encontrado</h3><p>Tente ajustar os filtros para encontrar outras oportunidades.</p><button class="button secondary small" onclick="clearFilters()">Limpar filtros</button></div>`;
+    }
+
+    function clearFilters() {
+      document.getElementById("keyword").value = "";
+      document.getElementById("area").value = "";
+      document.getElementById("course").value = "";
+      document.getElementById("mode").value = "";
+      document.getElementById("min-hours").value = "";
+      document.getElementById("max-hours").value = "";
+      includeClosed = false;
+      document.getElementById("include-closed").checked = false;
+      applyFilters();
+    }
+
+    function openProject(id) {
+      selectedProjectId = Number(id);
+      document.getElementById("breadcrumb-current").textContent = "Detalhes do projeto";
+      render();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function renderProjectDetail() {
+      const project = getProject(selectedProjectId);
+      if (!project) { selectedProjectId = null; renderDiscover(); return; }
+      const available = Math.max(0, project.spots - project.filled);
+      const alreadyApplied = getMyApplications().some(candidate => candidate.projectId === project.id);
+      content.innerHTML = `<button class="back-link" onclick="selectedProjectId=null;document.getElementById('breadcrumb-current').textContent='Explorar projetos';render()">←&nbsp; Voltar para projetos</button>
+      <section class="project-detail-head"><div class="card-top"><span class="area-tag">${escapeHtml(project.area)}</span><span class="status-tag ${project.enrollment === "open" ? "open" : "closed"}">${project.enrollment === "open" ? "Inscrições abertas" : "Encerrado"}</span></div>
+      <h1>${escapeHtml(project.title)}</h1><div class="coordinator">Coordenado por <strong>${escapeHtml(project.coordinator)}</strong></div>
+      <div class="detail-facts"><div class="detail-fact">Carga horária<strong>${project.hours} horas</strong></div><div class="detail-fact">Modalidade<strong>${escapeHtml(project.mode)}</strong></div><div class="detail-fact">Período de inscrição<strong>${escapeHtml(project.period)}</strong></div><div class="detail-fact">Início previsto<strong>${formatDate(project.start)}</strong></div></div></section>
+      <div class="detail-grid"><section class="detail-card"><h2>Sobre o projeto</h2><p>${escapeHtml(project.description)}</p><div class="course-list">${project.courses.map(course => `<span class="course-chip">${escapeHtml(course)}</span>`).join("")}</div></section>
+      <aside class="detail-card apply-card"><h2>Participe desta iniciativa</h2><p>Uma oportunidade para aprender, colaborar e fazer a diferença junto à comunidade.</p><div class="spots"><strong>${available}</strong> ${available === 1 ? "vaga disponível" : "vagas disponíveis"} · ${project.spots} vagas no total</div>
+      ${project.enrollment !== "open" ? `<button class="button secondary" disabled>Inscrições encerradas</button>` : alreadyApplied ? `<button class="button secondary" onclick="setView('my-applications')">Acompanhar candidatura</button>` : `<button class="button" ${available < 1 ? "disabled" : ""} onclick="openApplyModal(${project.id})">${available < 1 ? "Vagas preenchidas" : "Quero me candidatar"}</button>`}
+      <p class="muted-note">${escapeHtml(project.location)}<br>Você poderá acompanhar o status da sua candidatura pelo seu perfil.</p></aside></div>`;
+    }
+
+    function openApplyModal(projectId) {
+      const project = getProject(projectId);
+      if (project.enrollment !== "open" || project.spots - project.filled <= 0) { showToast("As inscrições deste projeto não estão disponíveis.", true); return; }
+      if (getMyApplications().some(candidate => candidate.projectId === project.id)) { showToast("Você já tem uma candidatura para este projeto.", true); return; }
+      showModal(`<div class="modal-header"><div><h2>Candidate-se ao projeto</h2><p>${escapeHtml(project.title)}</p></div><button class="close-button" aria-label="Fechar" onclick="closeModal()">×</button></div>
+      <form id="apply-form"><div class="modal-body"><div class="field"><label for="apply-course">Seu curso</label><select id="apply-course" required><option value="">Selecione seu curso</option>${project.courses.map(course => `<option>${escapeHtml(course)}</option>`).join("")}<option>Outro curso</option></select></div><div class="field"><label for="apply-semester">Semestre</label><select id="apply-semester" required><option value="">Selecione</option>${Array.from({ length: 10 }, (_, i) => `<option>${i + 1}º semestre</option>`).join("")}</select></div><div class="field"><label for="apply-motivation">Conte um pouco sobre seu interesse</label><textarea id="apply-motivation" required minlength="20" placeholder="O que te motivou a participar deste projeto?"></textarea><p class="field-hint">Escreva pelo menos 20 caracteres.</p></div></div><div class="modal-footer"><button type="button" class="button secondary" onclick="closeModal()">Cancelar</button><button class="button" type="submit">Enviar candidatura</button></div></form>`);
+      document.getElementById("apply-form").addEventListener("submit", event => {
+        event.preventDefault();
+        const motivation = document.getElementById("apply-motivation").value.trim();
+        if (motivation.length < 20) return;
+        if (getMyApplications().some(candidate => candidate.projectId === projectId)) { closeModal(); showToast("Você já tem uma candidatura para este projeto.", true); render(); return; }
+        candidates.push({ id: Date.now(), projectId, name: "Marina Costa", email: "marina.costa@aluno.edu.br", course: document.getElementById("apply-course").value, semester: document.getElementById("apply-semester").value, date: new Date().toISOString().slice(0, 10), status: "pending", motivation });
+        closeModal(); notifications.unshift({ text: `Sua candidatura para ${project.title} foi enviada e está em análise.`, time: "Agora", read: false });
+        showToast("Candidatura enviada! Você poderá acompanhar o andamento por aqui."); render();
+      });
+    }
+
+    function renderCoordinator() {
+      const coordinator = getProfileCoordinator();
+      const ownedProjects = projects.filter(project => project.coordinator === coordinator);
+      const projectId = Number(document.getElementById("managed-project")?.value) || ownedProjects[0]?.id;
+      const project = getProject(projectId);
+      const scoped = candidates.filter(candidate => ownedProjects.some(item => item.id === candidate.projectId));
+      const pendingTotal = scoped.filter(candidate => candidate.status === "pending").length;
+      const approvedTotal = scoped.filter(candidate => candidate.status === "approved").length;
+      const decidedTotal = scoped.filter(candidate => candidate.status === "approved" || candidate.status === "rejected").length;
+      const full = project.filled >= project.spots;
+      const filtered = candidates.filter(candidate => candidate.projectId === projectId && candidate.status === activeTab);
+      if (full && activeTab === "pending") filtered.sort((a, b) => a.date.localeCompare(b.date));
+      const pages = Math.max(1, Math.ceil(filtered.length / pageSize));
+      currentPage = Math.min(currentPage, pages);
+      const pageItems = filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+      const openCount = candidates.filter(candidate => candidate.projectId === projectId && candidate.status === "pending").length;
+      const approvedCount = project.filled;
+      content.innerHTML = `<div class="dashboard-head"><div><div class="eyebrow">Painel do coordenador</div><h1>Gestão de candidaturas</h1><p class="page-intro">Acompanhe os estudantes interessados e monte a equipe do seu projeto.</p></div>
+        <div class="dashboard-tools"><select id="managed-project" aria-label="Selecionar projeto">${ownedProjects.map(item => `<option value="${item.id}" ${item.id === projectId ? "selected" : ""}>${escapeHtml(item.title)}</option>`).join("")}</select></div></div>
+      <div class="metric-grid"><div class="metric-card"><div class="metric-title">Candidaturas em análise</div><div class="metric-value">${pendingTotal}</div><div class="metric-note">Nos seus projetos</div></div><div class="metric-card"><div class="metric-title">Estudantes aprovados</div><div class="metric-value">${approvedTotal}</div><div class="metric-note">Equipe em formação</div></div><div class="metric-card"><div class="metric-title">Projetos ativos</div><div class="metric-value">${ownedProjects.filter(item => item.enrollment === "open").length}</div><div class="metric-note">Com inscrições abertas</div></div><div class="metric-card"><div class="metric-title">Decisões realizadas</div><div class="metric-value">${decidedTotal}</div><div class="metric-note">Aprovações e recusas</div></div></div>
+      ${project ? `<section class="dashboard-panel"><div class="panel-heading"><div><h2>${escapeHtml(project.title)}</h2><p>Início previsto para ${formatDate(project.start)} · ${project.spots} vagas disponíveis no projeto</p></div><div class="capacity"><div class="capacity-label"><span>Vagas preenchidas</span><strong>${approvedCount} de ${project.spots}</strong></div><div class="progress"><span style="width:${Math.min(100, approvedCount / project.spots * 100)}%"></span></div></div></div>
+      <div class="tab-row"><button class="tab ${activeTab === "pending" ? "active" : ""}" data-tab="pending">${full ? "Lista de espera" : "Em análise"} <span>${openCount}</span></button><button class="tab ${activeTab === "approved" ? "active" : ""}" data-tab="approved">Aprovadas <span>${candidates.filter(c => c.projectId === projectId && c.status === "approved").length}</span></button><button class="tab ${activeTab === "rejected" ? "active" : ""}" data-tab="rejected">Recusadas <span>${candidates.filter(c => c.projectId === projectId && c.status === "rejected").length}</span></button><button class="tab ${activeTab === "cancelled" ? "active" : ""}" data-tab="cancelled">Canceladas <span>${candidates.filter(c => c.projectId === projectId && c.status === "cancelled").length}</span></button></div>
+      <div class="table-wrap">${pageItems.length ? `<table><thead><tr><th>Estudante</th><th>Curso / semestre</th><th>Data da candidatura</th><th>Status</th><th style="text-align:right">Ações</th></tr></thead><tbody>${pageItems.map(candidate => candidateRow(candidate, full)).join("")}</tbody></table>` : `<div class="table-empty"><strong>${activeTab === "pending" ? "Tudo em dia por aqui" : "Nenhuma candidatura nesta lista"}</strong>${activeTab === "pending" ? "Quando chegarem novas candidaturas, elas aparecerão aqui." : "Não há candidaturas com este status para o projeto."}</div>`}</div>
+      <div class="pagination"><span>Mostrando ${filtered.length ? (currentPage - 1) * pageSize + 1 : 0}–${Math.min(currentPage * pageSize, filtered.length)} de ${filtered.length} candidaturas</span><div class="pagination-controls"><button class="page-button" aria-label="Página anterior" ${currentPage === 1 ? "disabled" : ""} onclick="changePage(-1)">‹</button>${Array.from({ length: pages }, (_, i) => `<button class="page-button ${currentPage === i + 1 ? "active" : ""}" onclick="goPage(${i + 1})">${i + 1}</button>`).join("")}<button class="page-button" aria-label="Próxima página" ${currentPage === pages ? "disabled" : ""} onclick="changePage(1)">›</button></div></div></section>
+      ${full && openCount ? `<div class="notice">${icons.info}<span><strong>Vagas esgotadas.</strong> ${openCount} ${openCount === 1 ? "candidatura está" : "candidaturas estão"} em lista de espera, ordenadas por data. Você ainda pode recusar candidaturas pendentes.</span></div>` : `<div class="notice">${icons.info}<span>Ao aprovar uma candidatura, o estudante será notificado. As decisões podem ser reabertas até a véspera do início do projeto.</span></div>`}` : `<section class="dashboard-panel"><div class="table-empty"><strong>Nenhum projeto associado</strong>Este perfil ainda não tem projetos para gerenciar.</div></section>`}`;
+      document.getElementById("managed-project")?.addEventListener("change", event => { activeTab = "pending"; currentPage = 1; render(); });
+      document.querySelectorAll(".tab").forEach(tab => tab.addEventListener("click", () => { activeTab = tab.dataset.tab; currentPage = 1; render(); }));
+    }
+
+    function candidateRow(candidate, full) {
+      const canReopen = candidate.status === "approved" || candidate.status === "rejected";
+      const project = getProject(candidate.projectId);
+      const beforeStart = new Date(`${project.start}T00:00:00`) > new Date();
+      return `<tr><td><div class="candidate-cell"><div class="avatar">${nameInitials(candidate.name)}</div><div><strong>${escapeHtml(candidate.name)}</strong><small>${escapeHtml(candidate.email)}</small></div></div></td><td>${escapeHtml(candidate.course)}<br><span style="color:#8b9992;font-size:9px">${escapeHtml(candidate.semester)}</span></td><td>${formatDate(candidate.date)}</td><td><span class="status-pill ${candidate.status}">${statusText(candidate.status)}</span></td><td><div class="action-cell"><button class="text-button" onclick="openCandidate(${candidate.id})">Detalhes</button>${candidate.status === "pending" ? `<button class="button small" ${full ? "disabled title='Vagas esgotadas'" : ""} onclick="decideCandidate(${candidate.id},'approved')">Aprovar</button><button class="button secondary small" onclick="decideCandidate(${candidate.id},'rejected')">Recusar</button>` : canReopen && beforeStart ? `<button class="button secondary small" onclick="reopenCandidate(${candidate.id})">Reabrir</button>` : ""}</div></td></tr>`;
+    }
+
+    function changePage(delta) { currentPage += delta; renderCoordinator(); }
+    function goPage(page) { currentPage = page; renderCoordinator(); }
+
+    function openCandidate(id) {
+      const candidate = getCandidate(id);
+      selectedCandidateId = id;
+      const project = getProject(candidate.projectId);
+      showModal(`<div class="modal-header"><div><h2>Detalhes da candidatura</h2><p>${escapeHtml(project.title)}</p></div><button class="close-button" aria-label="Fechar" onclick="closeModal()">×</button></div>
+      <div class="modal-body"><div style="display:flex;align-items:center;gap:11px"><div class="avatar" style="width:42px;height:42px">${nameInitials(candidate.name)}</div><div><strong style="font-size:13px">${escapeHtml(candidate.name)}</strong><div style="color:#829088;font-size:10px;margin-top:3px">${escapeHtml(candidate.email)}</div></div><span class="status-pill ${candidate.status}" style="margin-left:auto">${statusText(candidate.status)}</span></div>
+      <div class="candidate-detail"><div><span>Curso</span><strong>${escapeHtml(candidate.course)}</strong></div><div><span>Semestre</span><strong>${escapeHtml(candidate.semester)}</strong></div><div><span>Enviada em</span><strong>${formatDate(candidate.date)}</strong></div><div><span>Projeto</span><strong>${escapeHtml(project.title)}</strong></div></div>
+      <div class="motivation"><strong>Motivação</strong>${escapeHtml(candidate.motivation)}</div>${candidate.reason ? `<div class="motivation" style="margin-top:10px"><strong>${candidate.status === "rejected" ? "Justificativa da recusa" : "Motivo da reabertura"}</strong>${escapeHtml(candidate.reason)}</div>` : ""}</div>
+      <div class="modal-footer"><button class="button secondary" onclick="closeModal()">Fechar</button>${candidate.status === "pending" ? `<button class="button secondary" onclick="closeModal();decideCandidate(${candidate.id},'rejected')">Recusar</button><button class="button" ${project.filled >= project.spots ? "disabled" : ""} onclick="closeModal();decideCandidate(${candidate.id},'approved')">Aprovar</button>` : ""}</div>`);
+    }
+
+    function decideCandidate(id, decision) {
+      const candidate = getCandidate(id);
+      const project = getProject(candidate.projectId);
+      if (!candidate || candidate.status !== "pending") { showToast("Esta candidatura já foi atualizada. Recarregamos os dados mais recentes.", true); render(); return; }
+      if (decision === "approved" && project.filled >= project.spots) {
+        showToast("Não foi possível aprovar: as vagas deste projeto estão esgotadas.", true); render(); return;
+      }
+      showModal(`<div class="modal-header"><div><h2>${decision === "approved" ? "Aprovar candidatura?" : "Recusar candidatura"}</h2><p>${escapeHtml(candidate.name)} · ${escapeHtml(project.title)}</p></div><button class="close-button" aria-label="Fechar" onclick="closeModal()">×</button></div>
+      <form id="decision-form"><div class="modal-body">${decision === "approved" ? `<div class="notice" style="margin:0">${icons.info}<span>Ao confirmar, <strong>${escapeHtml(candidate.name)}</strong> será adicionado à equipe e receberá uma notificação.</span></div>` : `<div class="field"><label for="decision-reason">Justificativa <span style="color:var(--red)">*</span></label><textarea id="decision-reason" required minlength="5" placeholder="Explique o motivo da recusa ao estudante"></textarea><p class="field-hint">A justificativa será enviada ao estudante.</p></div>`}</div><div class="modal-footer"><button type="button" class="button secondary" onclick="closeModal()">Voltar</button><button type="submit" class="button ${decision === "rejected" ? "danger" : ""}">${decision === "approved" ? "Confirmar aprovação" : "Confirmar recusa"}</button></div></form>`);
+      document.getElementById("decision-form").addEventListener("submit", event => {
+        event.preventDefault();
+        if (candidate.status !== "pending") { closeModal(); showToast("Esta candidatura já foi atualizada. Recarregamos os dados mais recentes.", true); render(); return; }
+        if (decision === "approved" && project.filled >= project.spots) { closeModal(); showToast("As vagas foram preenchidas antes da confirmação.", true); render(); return; }
+        const reason = decision === "rejected" ? document.getElementById("decision-reason").value.trim() : "";
+        if (decision === "rejected" && reason.length < 5) return;
+        candidate.status = decision; candidate.reason = reason;
+        if (decision === "approved") project.filled = Math.min(project.spots, project.filled + 1);
+        notifications.unshift({ text: decision === "approved" ? `Sua candidatura para ${project.title} foi aprovada!` : `Sua candidatura para ${project.title} foi recusada. Motivo: ${reason}`, time: "Agora", read: false });
+        closeModal(); showToast(decision === "approved" ? "Candidatura aprovada. O estudante foi notificado." : "Candidatura recusada. O estudante foi notificado."); render();
+      });
+    }
+
+    function reopenCandidate(id) {
+      const candidate = getCandidate(id);
+      const project = getProject(candidate.projectId);
+      if (!["approved", "rejected"].includes(candidate.status)) { showToast("Esta candidatura não pode ser reaberta.", true); render(); return; }
+      if (new Date(`${project.start}T00:00:00`) <= new Date()) { showToast("A reabertura só é permitida até a véspera do início do projeto.", true); return; }
+      showModal(`<div class="modal-header"><div><h2>Reabrir candidatura</h2><p>${escapeHtml(candidate.name)} · ${escapeHtml(project.title)}</p></div><button class="close-button" aria-label="Fechar" onclick="closeModal()">×</button></div>
+      <form id="reopen-form"><div class="modal-body"><p style="font-size:11px;line-height:1.6;color:#67776e;margin:0 0 14px">A candidatura voltará para <strong>Em análise</strong>${candidate.status === "approved" ? " e a vaga ocupada será liberada" : ""}. O estudante receberá uma notificação com o motivo.</p><div class="field"><label for="reopen-reason">Motivo da reabertura <span style="color:var(--red)">*</span></label><textarea id="reopen-reason" required minlength="5" placeholder="Explique por que esta candidatura está sendo reaberta"></textarea></div></div><div class="modal-footer"><button type="button" class="button secondary" onclick="closeModal()">Cancelar</button><button class="button" type="submit">Reabrir candidatura</button></div></form>`);
+      document.getElementById("reopen-form").addEventListener("submit", event => {
+        event.preventDefault();
+        if (new Date(`${project.start}T00:00:00`) <= new Date()) { closeModal(); showToast("O projeto já começou. Não é possível reabrir candidaturas.", true); return; }
+        const reason = document.getElementById("reopen-reason").value.trim();
+        if (reason.length < 5) return;
+        if (candidate.status === "approved") project.filled = Math.max(0, project.filled - 1);
+        candidate.status = "pending"; candidate.reason = `Reaberta: ${reason}`;
+        notifications.unshift({ text: `Sua candidatura para ${project.title} foi reaberta. Motivo: ${reason}`, time: "Agora", read: false });
+        activeTab = "pending"; closeModal(); showToast("Candidatura reaberta. O estudante foi notificado."); render();
+      });
+    }
+
+    function renderMyApplications() {
+      const mine = getMyApplications();
+      content.innerHTML = `<div class="dashboard-head"><div><div class="eyebrow">Espaço do estudante</div><h1>Minhas candidaturas</h1><p class="page-intro">Acompanhe suas inscrições e fique por dentro de cada atualização.</p></div><button class="button" onclick="setView('discover')">Explorar projetos</button></div>
+      <section class="dashboard-panel"><div class="panel-heading"><div><h2>Suas candidaturas</h2><p>${mine.length} ${mine.length === 1 ? "projeto acompanhado" : "projetos acompanhados"}</p></div></div>
+      <div class="table-wrap">${mine.length ? `<table><thead><tr><th>Projeto</th><th>Área</th><th>Data</th><th>Status</th><th></th></tr></thead><tbody>${mine.map(candidate => { const project = getProject(candidate.projectId); return `<tr><td><strong style="color:#263a30">${escapeHtml(project.title)}</strong></td><td>${escapeHtml(project.area)}</td><td>${formatDate(candidate.date)}</td><td><span class="status-pill ${candidate.status}">${statusText(candidate.status)}</span></td><td>${candidate.status === "pending" ? `<button class="text-button" onclick="cancelApplication(${candidate.id})">Cancelar candidatura</button>` : `<button class="text-button" onclick="openProject(${project.id})">Ver projeto</button>`}</td></tr>`; }).join("")}</tbody></table>` : `<div class="table-empty"><strong>Você ainda não se candidatou</strong>Explore os projetos e encontre uma oportunidade para participar.</div>`}</div></section>
+      <div class="notice">${icons.info}<span>As atualizações sobre suas candidaturas também aparecerão nas notificações do aplicativo.</span></div>`;
+    }
+
+    function cancelApplication(id) {
+      const candidate = getCandidate(id);
+      if (candidate.status !== "pending") { showToast("Só é possível cancelar candidaturas em análise.", true); return; }
+      if (!confirm("Deseja cancelar esta candidatura? A vaga será liberada para outro estudante.")) return;
+      candidate.status = "cancelled";
+      showToast("Candidatura cancelada. A vaga foi liberada."); render();
+    }
+
+    function openNotifications() {
+      showModal(`<div class="modal-header"><div><h2>Notificações</h2><p>Atualizações sobre suas candidaturas</p></div><button class="close-button" aria-label="Fechar" onclick="closeModal()">×</button></div><div class="modal-body" style="padding-top:8px">${notifications.length ? notifications.slice(0, 8).map(item => `<div style="padding:13px 0;border-bottom:1px solid #eff2ef;display:flex;gap:10px"><span style="width:8px;height:8px;border-radius:50%;background:${item.read ? "#d7dfd9" : "#62a47b"};margin-top:5px;flex:0 0 auto"></span><div style="font-size:11px;line-height:1.5;color:#46584e">${escapeHtml(item.text)}<div style="font-size:9px;color:#929e97;margin-top:4px">${escapeHtml(item.time)}</div></div></div>`).join("") : `<div class="table-empty"><strong>Nenhuma notificação</strong>Quando houver atualizações, você as encontrará aqui.</div>`}</div><div class="modal-footer"><button class="button secondary" onclick="closeModal()">Fechar</button></div>`);
+      notifications.forEach(item => item.read = true);
+    }
+
+    function showModal(markup) {
+      document.getElementById("modal-root").innerHTML = `<div class="overlay" id="active-overlay" onclick="if(event.target===this)closeModal()"><section class="modal" role="dialog" aria-modal="true">${markup}</section></div>`;
+      document.addEventListener("keydown", escapeModal);
+    }
+    function escapeModal(event) { if (event.key === "Escape") closeModal(); }
+    function closeModal() { document.getElementById("modal-root").innerHTML = ""; document.removeEventListener("keydown", escapeModal); }
+    function showToast(message, error = false) {
+      const region = document.getElementById("toast-region");
+      const toast = document.createElement("div");
+      toast.className = `toast${error ? " error" : ""}`; toast.textContent = message; region.appendChild(toast);
+      setTimeout(() => toast.remove(), 3800);
+    }
+
+    render();
+  </script>
+</body>
+</html>
