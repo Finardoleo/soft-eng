@@ -1,4 +1,4 @@
-# Feature Specification: Pesquisa, filtragem e candidatura de proetos de extensão
+# Feature Specification: Pesquisa, filtragem e candidatura de projetos de extensão - Protótipo de alta fidelidade
 
 ## User Scenarios & Testing 
 
